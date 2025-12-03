@@ -67,26 +67,39 @@ fn parse_puzzle(input: &str) -> Result<Puzzle> {
 }
 
 /// Get digits of a number as a vector
-fn get_digits(mut id: usize) -> Vec<u8> {
+fn get_digits_into(mut id: usize, buffer: &mut Vec<u8>) {
+    // Clear content, but keep allocated memory
+    buffer.clear();
+
     if id == 0 {
-        return vec![0];
+        buffer.push(0);
     }
 
-    let mut digits = Vec::new();
     while id > 0 {
-        digits.insert(0, (id % 10) as u8);
+        buffer.push((id % 10) as u8);
         id /= 10;
     }
-    digits
+
+    // Reverse the digits so they are in order
+    // This is faster than always pre-pending because inserting at 0 has complexity O(n) because it moves elements
+    buffer.reverse();
 }
 
-fn solve_puzzle_generic(puzzle: &Puzzle, is_id_valid: fn(usize) -> bool) -> usize {
-    // Collect all invalid IDs
-    let invalid_ids = puzzle.ranges.iter().flat_map(|range| {
-        (range.start..=range.end).flat_map(|id| if is_id_valid(id) { None } else { Some(id) })
-    });
+fn solve_puzzle_generic<F>(puzzle: &Puzzle, mut is_id_valid: F) -> usize
+where
+    F: FnMut(usize) -> bool,
+{
+    let mut invalid_sum = 0;
 
-    invalid_ids.sum()
+    for range in &puzzle.ranges {
+        for id in range.start..=range.end {
+            if !is_id_valid(id) {
+                invalid_sum += id;
+            }
+        }
+    }
+
+    invalid_sum
 }
 
 /// Module for solving task 1 (to keep things organized)
@@ -94,12 +107,19 @@ mod task_1 {
     use super::*;
 
     pub fn solve_puzzle(puzzle: &Puzzle) -> usize {
+        // Allocate memory once
+        // Capacity 20 is enough for any u64 (max ~1.8e19)
+        let mut buffer: Vec<u8> = Vec::with_capacity(20);
+
+        let is_id_valid = |id: usize| {
+            get_digits_into(id, &mut buffer);
+            is_id_valid(&buffer)
+        };
+
         solve_puzzle_generic(puzzle, is_id_valid)
     }
 
-    fn is_id_valid(id: usize) -> bool {
-        let digits: Vec<u8> = get_digits(id);
-
+    fn is_id_valid(digits: &[u8]) -> bool {
         if !digits.len().is_multiple_of(2) {
             return true;
         }
@@ -116,13 +136,27 @@ mod task_2 {
     use super::*;
 
     pub fn solve_puzzle(puzzle: &Puzzle) -> usize {
+        // Allocate memory once
+        // Capacity 20 is enough for any u64 (max ~1.8e19)
+        let mut buffer: Vec<u8> = Vec::with_capacity(20);
+
+        let is_id_valid = |id: usize| {
+            get_digits_into(id, &mut buffer);
+            is_id_valid(&buffer)
+        };
+
         solve_puzzle_generic(puzzle, is_id_valid)
     }
 
-    fn is_id_valid(id: usize) -> bool {
-        let digits: Vec<u8> = get_digits(id);
+    fn is_id_valid(digits: &[u8]) -> bool {
+        let n = digits.len();
 
-        for split in 1..digits.len() {
+        for split in 1..=(n / 2) {
+            if !n.is_multiple_of(split) {
+                // Do not bother checking - it will not split in chunks of equal sizes -> early exit
+                continue;
+            }
+
             let mut chunks = digits.chunks(split);
 
             let num_chunks = chunks.len();
@@ -146,15 +180,15 @@ mod task_2 {
 
         #[test]
         fn test_is_id_valid() {
-            assert_eq!(is_id_valid(11), false);
-            assert_eq!(is_id_valid(112), true);
-            assert_eq!(is_id_valid(1212), false);
-            assert_eq!(is_id_valid(12123), true);
-            assert_eq!(is_id_valid(123123), false);
-            assert_eq!(is_id_valid(12341234), false);
-            assert_eq!(is_id_valid(123123123), false);
-            assert_eq!(is_id_valid(1212121212), false);
-            assert_eq!(is_id_valid(1111111), false);
+            assert_eq!(is_id_valid(&vec![1, 1]), false);
+            assert_eq!(is_id_valid(&vec![1, 1, 2]), true);
+            assert_eq!(is_id_valid(&vec![1, 2, 1, 2]), false);
+            assert_eq!(is_id_valid(&vec![1, 2, 1, 2, 3]), true);
+            assert_eq!(is_id_valid(&vec![1, 2, 3, 1, 2, 3]), false);
+            assert_eq!(is_id_valid(&vec![1, 2, 3, 4, 1, 2, 3, 4]), false);
+            assert_eq!(is_id_valid(&vec![1, 2, 3, 1, 2, 3, 1, 2, 3]), false);
+            assert_eq!(is_id_valid(&vec![1, 2, 1, 2, 1, 2, 1, 2, 1, 2]), false);
+            assert_eq!(is_id_valid(&vec![1, 1, 1, 1, 1, 1, 1]), false);
         }
     }
 }
