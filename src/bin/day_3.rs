@@ -1,4 +1,4 @@
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, Result};
 use std::io::{self, Read};
 
 fn main() {
@@ -17,6 +17,12 @@ fn main() {
             return;
         }
     };
+
+    if puzzle.banks.iter().any(|bank| bank.batteries.len() < 12) {
+        eprintln!("Expected a puzzle where all banks (lines) have at least 12 batteries");
+        return;
+    }
+
     let solution_2 = solve_puzzle(&puzzle, 2);
     let solution_12 = solve_puzzle(&puzzle, 12);
     println!("Solution with 2 batteries on: {}", solution_2);
@@ -30,7 +36,6 @@ struct Puzzle {
 
 #[derive(Debug, PartialEq)]
 struct Bank {
-    // There are always at least 2 batteries, by construction
     batteries: Vec<usize>,
 }
 
@@ -45,13 +50,7 @@ fn parse_puzzle(input: &str) -> Result<Puzzle> {
                         .map(|d| d as usize)
                 })
                 .collect::<Result<Vec<usize>>>()
-                .and_then(|batteries| {
-                    if batteries.len() < 2 {
-                        return Err(anyhow!("Less than 2 batteries in one bank: '{}'", line));
-                    }
-
-                    Ok(Bank { batteries })
-                })
+                .map(|batteries| Bank { batteries })
         })
         .collect::<Result<Vec<Bank>>>()?;
 
@@ -64,7 +63,6 @@ fn solve_puzzle(puzzle: &Puzzle, num_on_batteries: usize) -> usize {
         panic!("Invalid argument: 0 batteries to turn on");
     }
 
-    // The first battery takes precedence, it needs to be the largest digit in the bank (excluding the last digit, as the second battery needs to have a digit available)
     puzzle
         .banks
         .iter()
