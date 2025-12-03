@@ -227,7 +227,7 @@ mod tests {
 
     #[test]
     fn test_real_input() {
-        let input = include_str!("../inputs/day-1");
+        let input = include_str!("../../inputs/day-1");
         let puzzle = parse_puzzle(input).unwrap();
         let (times_finish_at_zero, times_pass_zero) = solve_puzzle(&puzzle);
         assert_eq!(times_finish_at_zero, 1145);
