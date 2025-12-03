@@ -18,8 +18,7 @@ fn main() {
         }
     };
 
-    let solution_1 = task_1::solve_puzzle(&puzzle);
-    let solution_2 = task_2::solve_puzzle(&puzzle);
+    let (solution_1, solution_2) = solve_puzzle(&puzzle);
     println!(
         "Solution task 1: {}\nSolution task 2: {}",
         solution_1, solution_2
@@ -85,112 +84,66 @@ fn get_digits_into(mut id: usize, buffer: &mut Vec<u8>) {
     buffer.reverse();
 }
 
-fn solve_puzzle_generic<F>(puzzle: &Puzzle, mut is_id_valid: F) -> usize
-where
-    F: FnMut(usize) -> bool,
-{
-    let mut invalid_sum = 0;
+fn solve_puzzle(puzzle: &Puzzle) -> (usize, usize) {
+    // Allocate memory once
+    // Capacity 20 is enough for any u64 (max ~1.8e19)
+    let mut buffer: Vec<u8> = Vec::with_capacity(20);
+
+    let mut invalid_sum_1 = 0;
+    let mut invalid_sum_2 = 0;
 
     for range in &puzzle.ranges {
         for id in range.start..=range.end {
-            if !is_id_valid(id) {
-                invalid_sum += id;
+            get_digits_into(id, &mut buffer);
+            if !is_id_valid_1(&buffer) {
+                invalid_sum_1 += id;
+            }
+            if !is_id_valid_2(&buffer) {
+                invalid_sum_2 += id;
             }
         }
     }
 
-    invalid_sum
+    (invalid_sum_1, invalid_sum_2)
 }
 
-/// Module for solving task 1 (to keep things organized)
-mod task_1 {
-    use super::*;
-
-    pub fn solve_puzzle(puzzle: &Puzzle) -> usize {
-        // Allocate memory once
-        // Capacity 20 is enough for any u64 (max ~1.8e19)
-        let mut buffer: Vec<u8> = Vec::with_capacity(20);
-
-        let is_id_valid = |id: usize| {
-            get_digits_into(id, &mut buffer);
-            is_id_valid(&buffer)
-        };
-
-        solve_puzzle_generic(puzzle, is_id_valid)
+/// Implementation for Part one
+fn is_id_valid_1(digits: &[u8]) -> bool {
+    if !digits.len().is_multiple_of(2) {
+        return true;
     }
 
-    fn is_id_valid(digits: &[u8]) -> bool {
-        if !digits.len().is_multiple_of(2) {
-            return true;
-        }
+    let first_half = &digits[..digits.len() / 2];
+    let second_half = &digits[digits.len() / 2..];
 
-        let first_half = &digits[..digits.len() / 2];
-        let second_half = &digits[digits.len() / 2..];
-
-        first_half != second_half
-    }
+    first_half != second_half
 }
 
-/// Module for solving task 2 (to keep things organized)
-mod task_2 {
-    use super::*;
+/// Implementation for Part two
+fn is_id_valid_2(digits: &[u8]) -> bool {
+    let n = digits.len();
 
-    pub fn solve_puzzle(puzzle: &Puzzle) -> usize {
-        // Allocate memory once
-        // Capacity 20 is enough for any u64 (max ~1.8e19)
-        let mut buffer: Vec<u8> = Vec::with_capacity(20);
-
-        let is_id_valid = |id: usize| {
-            get_digits_into(id, &mut buffer);
-            is_id_valid(&buffer)
-        };
-
-        solve_puzzle_generic(puzzle, is_id_valid)
-    }
-
-    fn is_id_valid(digits: &[u8]) -> bool {
-        let n = digits.len();
-
-        for split in 1..=(n / 2) {
-            if !n.is_multiple_of(split) {
-                // Do not bother checking - it will not split in chunks of equal sizes -> early exit
-                continue;
-            }
-
-            let mut chunks = digits.chunks(split);
-
-            let num_chunks = chunks.len();
-
-            let first_chunk = chunks.next().unwrap();
-
-            // Check if the rest of the chunks are equal to the first
-            if num_chunks > 1 && chunks.all(|chunk| chunk == first_chunk) {
-                // Match found -> invalid ID
-                return false;
-            }
+    for split in 1..=(n / 2) {
+        if !n.is_multiple_of(split) {
+            // Do not bother checking - it will not split in chunks of equal sizes -> early exit
+            continue;
         }
 
-        // Did not find a matching split -> valid ID
-        true
-    }
+        let mut chunks = digits.chunks(split);
 
-    #[cfg(test)]
-    mod tests {
-        use super::*;
+        let num_chunks = chunks.len();
 
-        #[test]
-        fn test_is_id_valid() {
-            assert_eq!(is_id_valid(&vec![1, 1]), false);
-            assert_eq!(is_id_valid(&vec![1, 1, 2]), true);
-            assert_eq!(is_id_valid(&vec![1, 2, 1, 2]), false);
-            assert_eq!(is_id_valid(&vec![1, 2, 1, 2, 3]), true);
-            assert_eq!(is_id_valid(&vec![1, 2, 3, 1, 2, 3]), false);
-            assert_eq!(is_id_valid(&vec![1, 2, 3, 4, 1, 2, 3, 4]), false);
-            assert_eq!(is_id_valid(&vec![1, 2, 3, 1, 2, 3, 1, 2, 3]), false);
-            assert_eq!(is_id_valid(&vec![1, 2, 1, 2, 1, 2, 1, 2, 1, 2]), false);
-            assert_eq!(is_id_valid(&vec![1, 1, 1, 1, 1, 1, 1]), false);
+        let first_chunk = chunks.next().unwrap();
+
+        // Check if the rest of the chunks are equal to the first
+        if num_chunks > 1 && chunks.all(|chunk| chunk == first_chunk) {
+            // Match found -> invalid ID
+            return false;
         }
     }
+
+    // Did not find a matching split -> valid ID
+    true
 }
 
 #[cfg(test)]
@@ -201,8 +154,7 @@ mod tests {
     fn test_solve_puzzle() {
         let input = "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124";
         let puzzle = parse_puzzle(input).unwrap();
-        let solution_1 = task_1::solve_puzzle(&puzzle);
-        let solution_2 = task_2::solve_puzzle(&puzzle);
+        let (solution_1, solution_2) = solve_puzzle(&puzzle);
         assert_eq!(solution_1, 1227775554);
         assert_eq!(solution_2, 4174379265);
     }
@@ -221,11 +173,23 @@ mod tests {
     }
 
     #[test]
+    fn test_is_id_valid_2() {
+        assert_eq!(is_id_valid_2(&vec![1, 1]), false);
+        assert_eq!(is_id_valid_2(&vec![1, 1, 2]), true);
+        assert_eq!(is_id_valid_2(&vec![1, 2, 1, 2]), false);
+        assert_eq!(is_id_valid_2(&vec![1, 2, 1, 2, 3]), true);
+        assert_eq!(is_id_valid_2(&vec![1, 2, 3, 1, 2, 3]), false);
+        assert_eq!(is_id_valid_2(&vec![1, 2, 3, 4, 1, 2, 3, 4]), false);
+        assert_eq!(is_id_valid_2(&vec![1, 2, 3, 1, 2, 3, 1, 2, 3]), false);
+        assert_eq!(is_id_valid_2(&vec![1, 2, 1, 2, 1, 2, 1, 2, 1, 2]), false);
+        assert_eq!(is_id_valid_2(&vec![1, 1, 1, 1, 1, 1, 1]), false);
+    }
+
+    #[test]
     fn test_real_input() {
         let input = include_str!("../../inputs/day-2");
         let puzzle = parse_puzzle(input).unwrap();
-        let solution_1 = task_1::solve_puzzle(&puzzle);
-        let solution_2 = task_2::solve_puzzle(&puzzle);
+        let (solution_1, solution_2) = solve_puzzle(&puzzle);
         assert_eq!(solution_1, 26255179562);
         assert_eq!(solution_2, 31680313976);
     }
