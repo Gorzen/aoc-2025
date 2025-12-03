@@ -78,9 +78,7 @@ fn find_max_batteries(batteries: &[usize], num_on_batteries: usize) -> usize {
     if num_batteries < num_on_batteries {
         panic!(
             "`num_on_batteries = {}`, but only have {} batteries: {:?}",
-            num_batteries,
-            batteries.len(),
-            batteries
+            num_on_batteries, num_batteries, batteries
         );
     }
 
@@ -88,41 +86,25 @@ fn find_max_batteries(batteries: &[usize], num_on_batteries: usize) -> usize {
 
     let mut res: Vec<usize> = vec![];
 
-    let mut i = 0;
-
     // Greedily find largest numbers by removing all previous numbers with lower value
-    while to_remove > 0 && i < batteries.len() {
-        let value = batteries[i];
-
-        if res.is_empty() {
-            // Add value to res
-            res.push(value);
-            // Move to next value
-            i += 1;
-        } else {
-            // Check if value is better than what was already seen (previous values take precedence)
-            if value > *res.last().unwrap() {
-                // Value is better -> remove last
-                res.pop();
-                // We removed one more number
-                to_remove -= 1;
-            } else {
-                // Value is not better, take it for now
-                res.push(value);
-                i += 1;
-            }
+    // Adds between [num_batteries-to_remove = num_on_batteries, num_batteries] numbers
+    for &value in batteries {
+        // If we find a number greater than last seen value, remove stored values until either
+        // - there is nothing to remove
+        // - the last seen value is greater
+        // This makes sense because the first numbers in `res` have the most importance, if they can have a greater value, they must.
+        while to_remove > 0 && !res.is_empty() && *res.last().unwrap() < value {
+            // We remove a number here, so increase count
+            res.pop();
+            to_remove -= 1;
         }
-    }
 
-    // If we removed all values before reaching the end (i < batteries.len()-1), add the rest
-    for value in batteries.iter().skip(i) {
-        res.push(*value);
+        // Add value to res
+        res.push(value);
     }
 
     // Trim what is taken in excess (happens if nothing was removed for example - list sorted in descending order)
-    while res.len() > num_on_batteries {
-        res.pop();
-    }
+    res.truncate(num_on_batteries);
 
     res.iter().fold(0, |acc, value| acc * 10 + value)
 }
