@@ -1,5 +1,5 @@
+use anyhow::{Context, Result, anyhow};
 use std::io::{self, Read};
-use anyhow::{Result, Context, anyhow}
 
 fn main() {
     let mut input_buffer = String::new();
@@ -22,13 +22,33 @@ fn main() {
     println!("Solution: {}", solution);
 }
 
+#[derive(Debug, PartialEq)]
 struct Puzzle {
+    banks: Vec<Bank>,
+}
+
+#[derive(Debug, PartialEq)]
+struct Bank {
+    batteries: Vec<usize>,
 }
 
 fn parse_puzzle(input: &str) -> Result<Puzzle> {
-    todo!()
-}
+    let banks = input
+        .lines()
+        .map(|line| {
+            line.chars()
+                .map(|ch| {
+                    ch.to_digit(10)
+                        .with_context(|| format!("Failed to parse digit: '{}'", ch))
+                        .map(|d| d as usize)
+                })
+                .collect::<Result<Vec<usize>>>()
+                .map(|batteries| Bank { batteries })
+        })
+        .collect::<Result<Vec<Bank>>>()?;
 
+    Ok(Puzzle { banks })
+}
 
 fn solve_puzzle(puzzle: &Puzzle) -> usize {
     todo!()
@@ -44,6 +64,13 @@ mod tests {
         let puzzle = parse_puzzle(input).unwrap();
         let solution = solve_puzzle(&puzzle);
         assert_eq!(solution, 1227775554);
+    }
+
+    #[test]
+    fn test_parse_empty_puzzle() {
+        let input = "";
+        let result = parse_puzzle(input).unwrap();
+        assert_eq!(result, Puzzle { banks: vec![] });
     }
 
     #[test]
