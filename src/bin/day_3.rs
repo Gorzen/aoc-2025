@@ -17,9 +17,10 @@ fn main() {
             return;
         }
     };
-
-    let solution = solve_puzzle(&puzzle);
-    println!("Solution: {}", solution);
+    let solution_2 = solve_puzzle(&puzzle, 2);
+    let solution_12 = solve_puzzle(&puzzle, 12);
+    println!("Solution with 2 batteries on: {}", solution_2);
+    println!("Solution with 12 batteries on: {}", solution_12);
 }
 
 #[derive(Debug, PartialEq)]
@@ -57,71 +58,73 @@ fn parse_puzzle(input: &str) -> Result<Puzzle> {
     Ok(Puzzle { banks })
 }
 
-fn solve_puzzle(puzzle: &Puzzle) -> usize {
+/// Solve puzzle (turns on `num_on_batteries` batteries)
+fn solve_puzzle(puzzle: &Puzzle, num_on_batteries: usize) -> usize {
+    if num_on_batteries == 0 {
+        panic!("Invalid argument: 0 batteries to turn on");
+    }
+
     // The first battery takes precedence, it needs to be the largest digit in the bank (excluding the last digit, as the second battery needs to have a digit available)
     puzzle
         .banks
         .iter()
-        .map(|bank| {
-            let first_battery = find_first_battery(&bank.batteries);
-            let second_battery = find_second_battery(&bank.batteries, first_battery.0);
-            first_battery.1 * 10 + second_battery.1
-        })
+        .map(|bank| find_max_batteries(&bank.batteries, num_on_batteries))
         .sum()
 }
 
-/// Returns (index, value) of first battery, which is the first max value - excluding the last index
-fn find_first_battery(batteries: &[usize]) -> (usize, usize) {
-    if batteries.len() < 2 {
+fn find_max_batteries(batteries: &[usize], num_on_batteries: usize) -> usize {
+    let num_batteries = batteries.len();
+
+    if num_batteries < num_on_batteries {
         panic!(
-            "Batteries should always have at least length 2, found {:?}",
+            "`num_on_batteries = {}`, but only have {} batteries: {:?}",
+            num_batteries,
+            batteries.len(),
             batteries
         );
     }
 
-    let mut max = None;
+    let mut to_remove = num_batteries - num_on_batteries;
 
-    // Always runs at least once because batteries.len() >= 2
-    for (i, value) in batteries.iter().enumerate().take(batteries.len() - 1) {
-        match max {
-            None => max = Some((i, batteries[i])),
-            Some((_, current_max)) => {
-                if *value > current_max {
-                    max = Some((i, *value))
-                }
+    let mut res: Vec<usize> = vec![];
+
+    let mut i = 0;
+
+    // Greedily find largest numbers by removing all previous numbers with lower value
+    while to_remove > 0 && i < batteries.len() {
+        let value = batteries[i];
+
+        if res.is_empty() {
+            // Add value to res
+            res.push(value);
+            // Move to next value
+            i += 1;
+        } else {
+            // Check if value is better than what was already seen (previous values take precedence)
+            if value > *res.last().unwrap() {
+                // Value is better -> remove last
+                res.pop();
+                // We removed one more number
+                to_remove -= 1;
+            } else {
+                // Value is not better, take it for now
+                res.push(value);
+                i += 1;
             }
         }
     }
 
-    // We can safely unwrap, thanks to the condition and comment above.
-    max.unwrap()
-}
-
-/// Returns (index, value) of second battery, which is the max value after the index of the first_battery
-fn find_second_battery(batteries: &[usize], first_battery_index: usize) -> (usize, usize) {
-    if first_battery_index >= batteries.len() - 1 {
-        panic!(
-            "first_battery_index should always leave room for second batter, found {}, for {:?}",
-            first_battery_index, batteries
-        );
+    // If we removed all values before reaching the end (i < batteries.len()-1), add the rest
+    for value in batteries.iter().skip(i) {
+        res.push(*value);
     }
 
-    let mut max = None;
-
-    // Always runs at least once because first_battery_index < batteries.len() - 1
-    for (i, value) in batteries.iter().enumerate().skip(first_battery_index + 1) {
-        match max {
-            None => max = Some((i, batteries[i])),
-            Some((_, current_max)) => {
-                if *value > current_max {
-                    max = Some((i, *value))
-                }
-            }
-        }
+    // Trim what is taken in excess (happens if nothing was removed for example - list sorted in descending order)
+    while res.len() > num_on_batteries {
+        res.pop();
     }
 
-    // We can safely unwrap, thanks to the condition and comment above.
-    max.unwrap()
+    res.iter().fold(0, |acc, value| acc * 10 + value)
 }
 
 #[cfg(test)]
@@ -132,31 +135,66 @@ mod tests {
     fn test_solve_puzzle() {
         let input = "987654321111111\n811111111111119\n234234234234278\n818181911112111";
         let puzzle = parse_puzzle(input).unwrap();
-        let solution = solve_puzzle(&puzzle);
-        assert_eq!(solution, 357);
+        let solution_2 = solve_puzzle(&puzzle, 2);
+        assert_eq!(solution_2, 357);
+        let solution_12 = solve_puzzle(&puzzle, 12);
+        assert_eq!(solution_12, 3121910778619);
     }
 
     #[test]
-    fn test_finding_batteries_1() {
-        let batteries = vec![3, 2, 3, 3, 9, 1, 1];
-        let first_battery = find_first_battery(&batteries);
-        assert_eq!(first_battery, (4, 9));
-        let second_battery = find_second_battery(&batteries, first_battery.0);
-        assert_eq!(second_battery, (5, 1));
+    fn test_solve_puzzle_1() {
+        let input = "987654321111111";
+        let puzzle = parse_puzzle(input).unwrap();
+        let solution_2 = solve_puzzle(&puzzle, 2);
+        assert_eq!(solution_2, 98);
+        let solution_12 = solve_puzzle(&puzzle, 12);
+        assert_eq!(solution_12, 987654321111);
     }
 
     #[test]
-    fn test_finding_batteries_2() {
-        let batteries = vec![
-            3, 2, 3, 3, 4, 3, 4, 2, 2, 3, 3, 5, 2, 2, 5, 3, 3, 2, 2, 2, 4, 4, 3, 2, 3, 5, 6, 2, 4,
-            1, 3, 2, 2, 2, 3, 2, 2, 4, 2, 2, 5, 2, 2, 6, 2, 2, 3, 1, 2, 4, 2, 2, 3, 3, 2, 1, 2, 3,
-            2, 2, 3, 1, 2, 3, 2, 3, 5, 4, 2, 2, 2, 1, 2, 1, 9, 6, 3, 2, 3, 2, 2, 2, 3, 3, 2, 2, 3,
-            2, 3, 3, 2, 2, 4, 2, 2, 2, 2, 2, 1, 1,
-        ];
-        let first_battery = find_first_battery(&batteries);
-        assert_eq!(first_battery, (74, 9));
-        let second_battery = find_second_battery(&batteries, first_battery.0);
-        assert_eq!(second_battery, (75, 6));
+    fn test_solve_puzzle_2() {
+        let input = "811111111111119";
+        let puzzle = parse_puzzle(input).unwrap();
+        let solution_2 = solve_puzzle(&puzzle, 2);
+        assert_eq!(solution_2, 89);
+        let solution_12 = solve_puzzle(&puzzle, 12);
+        assert_eq!(solution_12, 811111111119);
+    }
+
+    #[test]
+    fn test_solve_puzzle_3() {
+        let input = "234234234234278";
+        let puzzle = parse_puzzle(input).unwrap();
+        let solution_2 = solve_puzzle(&puzzle, 2);
+        assert_eq!(solution_2, 78);
+        let solution_12 = solve_puzzle(&puzzle, 12);
+        assert_eq!(solution_12, 434234234278);
+    }
+
+    #[test]
+    fn test_solve_puzzle_4() {
+        let input = "818181911112111";
+        let puzzle = parse_puzzle(input).unwrap();
+        let solution_2 = solve_puzzle(&puzzle, 2);
+        assert_eq!(solution_2, 92);
+        let solution_12 = solve_puzzle(&puzzle, 12);
+        assert_eq!(solution_12, 888911112111);
+    }
+
+    #[test]
+    fn test_solve_puzzle_5() {
+        let input = "24352342";
+        let puzzle = parse_puzzle(input).unwrap();
+        let solution_4 = solve_puzzle(&puzzle, 4);
+        assert_eq!(solution_4, 5342);
+    }
+
+    #[test]
+    fn test_solve_puzzle_6() {
+        let input = "987654321";
+        let puzzle = parse_puzzle(input).unwrap();
+        let solution_4 = solve_puzzle(&puzzle, 4);
+        assert_eq!(solution_4, 9876);
     }
 
     #[test]
@@ -170,7 +208,9 @@ mod tests {
     fn test_real_input() {
         let input = include_str!("../../inputs/day-3");
         let puzzle = parse_puzzle(input).unwrap();
-        let solution = solve_puzzle(&puzzle);
-        assert_eq!(solution, 17109);
+        let solution_2 = solve_puzzle(&puzzle, 2);
+        assert_eq!(solution_2, 17109);
+        let solution_12 = solve_puzzle(&puzzle, 12);
+        assert_eq!(solution_12, 169347417057382);
     }
 }
