@@ -146,6 +146,15 @@ mod tests {
     }
 
     #[test]
+    fn test_empty_puzzle() {
+        let input = "";
+        let puzzle = parse_puzzle(input).unwrap();
+        let (times_finish_at_zero, times_pass_zero) = solve_puzzle(&puzzle);
+        assert_eq!(times_finish_at_zero, 0);
+        assert_eq!(times_pass_zero, 0);
+    }
+
+    #[test]
     fn test_pass_zero_right() {
         let input = "R1000";
         let puzzle = parse_puzzle(input).unwrap();
