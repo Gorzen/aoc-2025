@@ -1,6 +1,8 @@
 use anyhow::{Context, Result};
 use std::io::{self, Read};
 
+// TODO: Could remove panic!(...) in this...
+
 fn main() {
     let mut input_buffer = String::new();
 
