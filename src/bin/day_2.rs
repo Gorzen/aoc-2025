@@ -18,8 +18,12 @@ fn main() {
         }
     };
 
-    let solution = solve_puzzle(&puzzle);
-    println!("Solution: {}", solution);
+    let solution_1 = task_1::solve_puzzle(&puzzle);
+    let solution_2 = task_2::solve_puzzle(&puzzle);
+    println!(
+        "Solution task 1: {}\nSolution task 2: {}",
+        solution_1, solution_2
+    );
 }
 
 #[derive(Debug)]
@@ -62,28 +66,7 @@ fn parse_puzzle(input: &str) -> Result<Puzzle> {
     Ok(Puzzle { ranges })
 }
 
-fn solve_puzzle(puzzle: &Puzzle) -> usize {
-    // Collect all invalid IDs
-    let invalid_ids = puzzle.ranges.iter().flat_map(|range| {
-        (range.start..=range.end).flat_map(|id| if !is_id_valid(id) { Some(id) } else { None })
-    });
-
-    invalid_ids.sum()
-}
-
-fn is_id_valid(id: usize) -> bool {
-    let digits: Vec<u8> = get_digits(id);
-
-    if !digits.len().is_multiple_of(2) {
-        return true;
-    }
-
-    let first_half = &digits[..digits.len() / 2];
-    let second_half = &digits[digits.len() / 2..];
-
-    first_half != second_half
-}
-
+/// Get digits of a number as a vector
 fn get_digits(mut id: usize) -> Vec<u8> {
     if id == 0 {
         return vec![0];
@@ -97,6 +80,85 @@ fn get_digits(mut id: usize) -> Vec<u8> {
     digits
 }
 
+fn solve_puzzle_generic(puzzle: &Puzzle, is_id_valid: fn(usize) -> bool) -> usize {
+    // Collect all invalid IDs
+    let invalid_ids = puzzle.ranges.iter().flat_map(|range| {
+        (range.start..=range.end).flat_map(|id| if is_id_valid(id) { None } else { Some(id) })
+    });
+
+    invalid_ids.sum()
+}
+
+/// Module for solving task 1 (to keep things organized)
+mod task_1 {
+    use super::*;
+
+    pub fn solve_puzzle(puzzle: &Puzzle) -> usize {
+        solve_puzzle_generic(puzzle, is_id_valid)
+    }
+
+    fn is_id_valid(id: usize) -> bool {
+        let digits: Vec<u8> = get_digits(id);
+
+        if !digits.len().is_multiple_of(2) {
+            return true;
+        }
+
+        let first_half = &digits[..digits.len() / 2];
+        let second_half = &digits[digits.len() / 2..];
+
+        first_half != second_half
+    }
+}
+
+/// Module for solving task 2 (to keep things organized)
+mod task_2 {
+    use super::*;
+
+    pub fn solve_puzzle(puzzle: &Puzzle) -> usize {
+        solve_puzzle_generic(puzzle, is_id_valid)
+    }
+
+    fn is_id_valid(id: usize) -> bool {
+        let digits: Vec<u8> = get_digits(id);
+
+        for split in 1..digits.len() {
+            let mut chunks = digits.chunks(split);
+
+            let num_chunks = chunks.len();
+
+            let first_chunk = chunks.next().unwrap();
+
+            // Check if the rest of the chunks are equal to the first
+            if num_chunks > 1 && chunks.all(|chunk| chunk == first_chunk) {
+                // Match found -> invalid ID
+                return false;
+            }
+        }
+
+        // Did not find a matching split -> valid ID
+        true
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn test_is_id_valid() {
+            assert_eq!(is_id_valid(11), false);
+            assert_eq!(is_id_valid(112), true);
+            assert_eq!(is_id_valid(1212), false);
+            assert_eq!(is_id_valid(12123), true);
+            assert_eq!(is_id_valid(123123), false);
+            assert_eq!(is_id_valid(12341234), false);
+            assert_eq!(is_id_valid(123123123), false);
+            assert_eq!(is_id_valid(1212121212), false);
+            assert_eq!(is_id_valid(1111111), false);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -105,12 +167,14 @@ mod tests {
     fn test_solve_puzzle() {
         let input = "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124";
         let puzzle = parse_puzzle(input).unwrap();
-        let solution = solve_puzzle(&puzzle);
-        assert_eq!(solution, 1227775554);
+        let solution_1 = task_1::solve_puzzle(&puzzle);
+        let solution_2 = task_2::solve_puzzle(&puzzle);
+        assert_eq!(solution_1, 1227775554);
+        assert_eq!(solution_2, 4174379265);
     }
 
     #[test]
-    fn test_empty_puzzle() {
+    fn test_parse_empty_puzzle() {
         let input = "";
         let result = parse_puzzle(input);
         assert!(result.is_err());
@@ -126,7 +190,9 @@ mod tests {
     fn test_real_input() {
         let input = include_str!("../../inputs/day-2");
         let puzzle = parse_puzzle(input).unwrap();
-        let solution = solve_puzzle(&puzzle);
-        assert_eq!(solution, 26255179562);
+        let solution_1 = task_1::solve_puzzle(&puzzle);
+        let solution_2 = task_2::solve_puzzle(&puzzle);
+        assert_eq!(solution_1, 26255179562);
+        assert_eq!(solution_2, 31680313976);
     }
 }
