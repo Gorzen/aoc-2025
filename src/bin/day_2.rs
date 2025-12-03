@@ -174,15 +174,15 @@ mod tests {
 
     #[test]
     fn test_is_id_valid_2() {
-        assert_eq!(is_id_valid_2(&vec![1, 1]), false);
-        assert_eq!(is_id_valid_2(&vec![1, 1, 2]), true);
-        assert_eq!(is_id_valid_2(&vec![1, 2, 1, 2]), false);
-        assert_eq!(is_id_valid_2(&vec![1, 2, 1, 2, 3]), true);
-        assert_eq!(is_id_valid_2(&vec![1, 2, 3, 1, 2, 3]), false);
-        assert_eq!(is_id_valid_2(&vec![1, 2, 3, 4, 1, 2, 3, 4]), false);
-        assert_eq!(is_id_valid_2(&vec![1, 2, 3, 1, 2, 3, 1, 2, 3]), false);
-        assert_eq!(is_id_valid_2(&vec![1, 2, 1, 2, 1, 2, 1, 2, 1, 2]), false);
-        assert_eq!(is_id_valid_2(&vec![1, 1, 1, 1, 1, 1, 1]), false);
+        assert_eq!(is_id_valid_2(&[1, 1]), false);
+        assert_eq!(is_id_valid_2(&[1, 1, 2]), true);
+        assert_eq!(is_id_valid_2(&[1, 2, 1, 2]), false);
+        assert_eq!(is_id_valid_2(&[1, 2, 1, 2, 3]), true);
+        assert_eq!(is_id_valid_2(&[1, 2, 3, 1, 2, 3]), false);
+        assert_eq!(is_id_valid_2(&[1, 2, 3, 4, 1, 2, 3, 4]), false);
+        assert_eq!(is_id_valid_2(&[1, 2, 3, 1, 2, 3, 1, 2, 3]), false);
+        assert_eq!(is_id_valid_2(&[1, 2, 1, 2, 1, 2, 1, 2, 1, 2]), false);
+        assert_eq!(is_id_valid_2(&[1, 1, 1, 1, 1, 1, 1]), false);
     }
 
     #[test]
