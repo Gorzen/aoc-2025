@@ -83,7 +83,7 @@ fn parse_puzzle(input: &str) -> Result<Puzzle> {
             match dir {
                 "L" => Ok(Instruction::Left(value)),
                 "R" => Ok(Instruction::Right(value)),
-                _ => Err(anyhow::anyhow!(
+                _ => Err(anyhow!(
                     "Invalid direction. Expected 'L' or 'R', found '{}'",
                     dir
                 )),
