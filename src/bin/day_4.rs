@@ -59,17 +59,15 @@ fn parse_puzzle(input: &str) -> Result<Puzzle> {
     Ok(Puzzle { diagram })
 }
 
-/// Pass as value and not reference to consume it.
+/// Pass `puzzle` as value and not reference to consume it (to avoid the caller reusing a modified puzzle afterwards).
+/// Returns (number of papers removed in first pass, number of papers removed in total)
 fn solve_puzzle(mut puzzle: Puzzle) -> (usize, usize) {
-    // Max 8 adjacent positions
-    let mut adjacent_positions_buffer: Vec<Position> = Vec::with_capacity(8);
-
     let mut removed_rounds: Vec<usize> = Vec::new();
 
     let mut done = false;
 
     while !done {
-        let removed = remove_accessible_papers(&mut puzzle, &mut adjacent_positions_buffer);
+        let removed = remove_accessible_papers(&mut puzzle);
         removed_rounds.push(removed);
         done = removed == 0;
     }
@@ -81,16 +79,13 @@ fn solve_puzzle(mut puzzle: Puzzle) -> (usize, usize) {
 }
 
 /// Returns the number of papers removed
-fn remove_accessible_papers(
-    puzzle: &mut Puzzle,
-    adjacent_positions_buffer: &mut Vec<Position>,
-) -> usize {
+fn remove_accessible_papers(puzzle: &mut Puzzle) -> usize {
     let mut positions_to_remove: Vec<(usize, usize)> = Vec::new();
 
     for (x, row) in puzzle.diagram.iter().enumerate() {
         for (y, pos) in row.iter().enumerate() {
             // If pos is accessible paper, mark it as 'to be removed'
-            if pos == &Position::Paper && is_accessible(puzzle, x, y, adjacent_positions_buffer) {
+            if pos == &Position::Paper && is_accessible(puzzle, x, y) {
                 positions_to_remove.push((x, y));
             }
         }
@@ -107,9 +102,8 @@ fn remove_accessible_papers(
 }
 
 /// Less than 4 papers in adjacent positions
-fn is_accessible(puzzle: &Puzzle, x: usize, y: usize, buffer: &mut Vec<Position>) -> bool {
-    buffer.clear();
-    let adjacent_positions = buffer;
+fn is_accessible(puzzle: &Puzzle, x: usize, y: usize) -> bool {
+    let mut adjacent_papers = 0;
 
     let x_i32 = x as i32;
     let y_i32 = y as i32;
@@ -128,16 +122,12 @@ fn is_accessible(puzzle: &Puzzle, x: usize, y: usize, buffer: &mut Vec<Position>
                 && let Some(row) = puzzle.diagram.get(x as usize)
                 && y >= 0
                 && let Some(pos) = row.get(y as usize)
+                && pos == &Position::Paper
             {
-                adjacent_positions.push(pos.clone());
+                adjacent_papers += 1;
             }
         }
     }
-
-    let adjacent_papers = adjacent_positions
-        .iter()
-        .filter(|pos| **pos == Position::Paper)
-        .count();
 
     adjacent_papers < 4
 }
