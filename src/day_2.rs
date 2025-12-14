@@ -1,42 +1,21 @@
-use anyhow::{Context, Result, anyhow};
+use anyhow::Result;
 
-use crate::common::Solution;
+// TODO: I wonder if I should make all days pass with empty inputs...
+
+use crate::{
+    common::Solution,
+    range::{Range, merge_ranges},
+};
 
 #[derive(Debug)]
 pub struct Puzzle {
     ranges: Vec<Range>,
 }
 
-/// Inclusive range from start to end
-#[derive(Debug)]
-struct Range {
-    start: usize,
-    end: usize,
-}
-
 pub fn parse_puzzle(input: &str) -> Result<Puzzle> {
     let ranges = input
         .split(',')
-        .map(|range| {
-            if range.is_empty() {
-                return Err(anyhow!("Empty range found"));
-            }
-
-            let x: Vec<&str> = range.split('-').collect();
-            if x.len() != 2 {
-                return Err(anyhow!(
-                    "Invalid range format, expected x-y, found '{}'",
-                    range
-                ));
-            }
-            let start: usize = x[0]
-                .parse()
-                .with_context(|| format!("Failed to parse number: '{}'", x[0]))?;
-            let end: usize = x[1]
-                .parse()
-                .with_context(|| format!("Failed to parse number: '{}'", x[1]))?;
-            Ok(Range { start, end })
-        })
+        .map(Range::parse)
         .collect::<Result<Vec<Range>>>()?;
 
     Ok(Puzzle { ranges })
@@ -50,8 +29,10 @@ pub fn solve_puzzle(puzzle: Puzzle) -> Solution {
     let mut invalid_sum_1 = 0;
     let mut invalid_sum_2 = 0;
 
-    for range in &puzzle.ranges {
-        for id in range.start..=range.end {
+    let merged_ranges = merge_ranges(puzzle.ranges);
+
+    for range in &merged_ranges {
+        for id in range.range() {
             get_digits_into(id, &mut buffer);
             if !is_id_valid_1(&buffer) {
                 invalid_sum_1 += id;
@@ -137,19 +118,6 @@ mod tests {
         let solution = solve_puzzle(puzzle);
         assert_eq!(solution.task_1, 1227775554);
         assert_eq!(solution.task_2, 4174379265);
-    }
-
-    #[test]
-    fn test_parse_empty_puzzle() {
-        let input = "";
-        let result = parse_puzzle(input);
-        assert!(result.is_err());
-        assert!(
-            result
-                .unwrap_err()
-                .to_string()
-                .contains("Empty range found")
-        );
     }
 
     #[test]
