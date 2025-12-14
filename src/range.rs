@@ -67,18 +67,14 @@ pub fn merge_ranges(mut ranges: Vec<Range>) -> Vec<Range> {
             Some(last_range) => {
                 if range.start <= last_range.end {
                     // Overlap, merge
-                    println!("Merging {} with {}", last_range, range);
                     last_range.end = last_range.end.max(range.end);
                 } else {
-                    println!("Adding new range {} to {:?}", range, merged_ranges);
                     merged_ranges.push(range);
                 }
             }
             None => merged_ranges.push(range),
         }
     }
-
-    println!("{:?}", merged_ranges);
 
     merged_ranges
 }
