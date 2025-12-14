@@ -11,7 +11,6 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -27,4 +26,4 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     - name: Run all binaries
-      run: for i in {1..12}; do echo "Running day_$i"; cargo run -- day_$i; done
+      run: for i in {1..5}; do echo "Running day_$i"; cargo run -- day_$i; done

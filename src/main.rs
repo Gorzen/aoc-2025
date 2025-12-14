@@ -1,15 +1,15 @@
+use anyhow::{Result, anyhow};
 use aoc_2025::common;
 use std::env;
 
-fn main() {
+fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() != 2 {
-        eprintln!(
+        return Err(anyhow!(
             "Expected two arguments - the program and the day to run (day_1, ..., day_12). Got {} arguments.",
             args.len()
-        );
-        return;
+        ));
     }
 
     let day = args[1].as_str();
@@ -20,9 +20,10 @@ fn main() {
         "day_3" => run_day!(day_3),
         "day_4" => run_day!(day_4),
         "day_5" => run_day!(day_5),
-        other => {
-            eprintln!("Unexpected argument {}. Expected day_1, ..., day_12", other);
-        }
+        other => Err(anyhow!(
+            "Unexpected argument {}. Expected day_1, ..., day_12",
+            other
+        )),
     }
 }
 
@@ -32,8 +33,11 @@ macro_rules! run_day {
         let input = match common::read_input(stringify!($day)) {
             Ok(input) => input,
             Err(e) => {
-                eprintln!("Error reading puzzle for {}: {}", stringify!($day), e);
-                return;
+                return Err(anyhow!(
+                    "Error reading puzzle for {}: {}",
+                    stringify!($day),
+                    e
+                ));
             }
         };
 
@@ -41,8 +45,11 @@ macro_rules! run_day {
         let puzzle = match aoc_2025::$day::parse_puzzle(&input) {
             Ok(puzzle) => puzzle,
             Err(e) => {
-                eprintln!("Error parsing puzzle for {}: {}", stringify!($day), e);
-                return;
+                return Err(anyhow!(
+                    "Error parsing puzzle for {}: {}",
+                    stringify!($day),
+                    e
+                ));
             }
         };
 
@@ -53,5 +60,7 @@ macro_rules! run_day {
             "Solution:\n- Task 1: {}\n- Task 2: {}",
             solution.task_1, solution.task_2,
         );
+
+        Ok(())
     }};
 }
