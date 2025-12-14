@@ -19,6 +19,7 @@ fn main() {
         "day_2" => run_day!(day_2),
         "day_3" => run_day!(day_3),
         "day_4" => run_day!(day_4),
+        "day_5" => run_day!(day_5),
         other => {
             eprintln!("Unexpected argument {}. Expected day_1, day_2, ...", other);
         }
