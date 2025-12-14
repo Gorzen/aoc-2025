@@ -1,32 +1,9 @@
 use anyhow::{Context, Result, anyhow};
-use std::io::{self, Read};
 
-fn main() {
-    let mut input_buffer = String::new();
-
-    println!("Reading input from stdin...");
-    if let Err(e) = io::stdin().read_to_string(&mut input_buffer) {
-        eprintln!("Error reading input: {}", e);
-        return;
-    }
-
-    let puzzle = match parse_puzzle(&input_buffer) {
-        Ok(puzzle) => puzzle,
-        Err(e) => {
-            eprintln!("Error parsing puzzle: {}", e);
-            return;
-        }
-    };
-
-    let (solution_1, solution_2) = solve_puzzle(&puzzle);
-    println!(
-        "Solution task 1: {}\nSolution task 2: {}",
-        solution_1, solution_2
-    );
-}
+use crate::common::Solution;
 
 #[derive(Debug)]
-struct Puzzle {
+pub struct Puzzle {
     ranges: Vec<Range>,
 }
 
@@ -37,7 +14,7 @@ struct Range {
     end: usize,
 }
 
-fn parse_puzzle(input: &str) -> Result<Puzzle> {
+pub fn parse_puzzle(input: &str) -> Result<Puzzle> {
     let ranges = input
         .split(',')
         .map(|range| {
@@ -65,26 +42,7 @@ fn parse_puzzle(input: &str) -> Result<Puzzle> {
     Ok(Puzzle { ranges })
 }
 
-/// Get digits of a number as a vector
-fn get_digits_into(mut id: usize, buffer: &mut Vec<u8>) {
-    // Clear content, but keep allocated memory
-    buffer.clear();
-
-    if id == 0 {
-        buffer.push(0);
-    }
-
-    while id > 0 {
-        buffer.push((id % 10) as u8);
-        id /= 10;
-    }
-
-    // Reverse the digits so they are in order
-    // This is faster than always pre-pending because inserting at 0 has complexity O(n) because it moves elements
-    buffer.reverse();
-}
-
-fn solve_puzzle(puzzle: &Puzzle) -> (usize, usize) {
+pub fn solve_puzzle(puzzle: Puzzle) -> Solution {
     // Allocate memory once
     // Capacity 20 is enough for any u64 (max ~1.8e19)
     let mut buffer: Vec<u8> = Vec::with_capacity(20);
@@ -104,7 +62,29 @@ fn solve_puzzle(puzzle: &Puzzle) -> (usize, usize) {
         }
     }
 
-    (invalid_sum_1, invalid_sum_2)
+    Solution {
+        task_1: invalid_sum_1,
+        task_2: invalid_sum_2,
+    }
+}
+
+/// Get digits of a number as a vector
+fn get_digits_into(mut id: usize, buffer: &mut Vec<u8>) {
+    // Clear content, but keep allocated memory
+    buffer.clear();
+
+    if id == 0 {
+        buffer.push(0);
+    }
+
+    while id > 0 {
+        buffer.push((id % 10) as u8);
+        id /= 10;
+    }
+
+    // Reverse the digits so they are in order
+    // This is faster than always pre-pending because inserting at 0 has complexity O(n) because it moves elements
+    buffer.reverse();
 }
 
 /// Implementation for Part one
@@ -154,9 +134,9 @@ mod tests {
     fn test_solve_puzzle() {
         let input = "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124";
         let puzzle = parse_puzzle(input).unwrap();
-        let (solution_1, solution_2) = solve_puzzle(&puzzle);
-        assert_eq!(solution_1, 1227775554);
-        assert_eq!(solution_2, 4174379265);
+        let solution = solve_puzzle(puzzle);
+        assert_eq!(solution.task_1, 1227775554);
+        assert_eq!(solution.task_2, 4174379265);
     }
 
     #[test]
@@ -187,10 +167,10 @@ mod tests {
 
     #[test]
     fn test_real_input() {
-        let input = include_str!("../../inputs/day-2");
+        let input = include_str!("../inputs/day_2");
         let puzzle = parse_puzzle(input).unwrap();
-        let (solution_1, solution_2) = solve_puzzle(&puzzle);
-        assert_eq!(solution_1, 26255179562);
-        assert_eq!(solution_2, 31680313976);
+        let solution = solve_puzzle(puzzle);
+        assert_eq!(solution.task_1, 26255179562);
+        assert_eq!(solution.task_2, 31680313976);
     }
 }

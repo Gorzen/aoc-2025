@@ -1,38 +1,11 @@
 use anyhow::{Context, Result};
-use std::io::{self, Read};
+
+use crate::common::Solution;
 
 // TODO: Could remove panic!(...) in this...
 
-fn main() {
-    let mut input_buffer = String::new();
-
-    println!("Reading input from stdin...");
-    if let Err(e) = io::stdin().read_to_string(&mut input_buffer) {
-        eprintln!("Error reading input: {}", e);
-        return;
-    }
-
-    let puzzle = match parse_puzzle(&input_buffer) {
-        Ok(puzzle) => puzzle,
-        Err(e) => {
-            eprintln!("Error parsing puzzle: {}", e);
-            return;
-        }
-    };
-
-    if puzzle.banks.iter().any(|bank| bank.batteries.len() < 12) {
-        eprintln!("Expected a puzzle where all banks (lines) have at least 12 batteries");
-        return;
-    }
-
-    let solution_2 = solve_puzzle(&puzzle, 2);
-    let solution_12 = solve_puzzle(&puzzle, 12);
-    println!("Solution with 2 batteries on: {}", solution_2);
-    println!("Solution with 12 batteries on: {}", solution_12);
-}
-
 #[derive(Debug, PartialEq)]
-struct Puzzle {
+pub struct Puzzle {
     banks: Vec<Bank>,
 }
 
@@ -41,7 +14,7 @@ struct Bank {
     batteries: Vec<usize>,
 }
 
-fn parse_puzzle(input: &str) -> Result<Puzzle> {
+pub fn parse_puzzle(input: &str) -> Result<Puzzle> {
     let banks = input
         .lines()
         .map(|line| {
@@ -59,8 +32,19 @@ fn parse_puzzle(input: &str) -> Result<Puzzle> {
     Ok(Puzzle { banks })
 }
 
+/// Solve puzzle (2 for task_1 and 12 batteries for task_1)
+pub fn solve_puzzle(puzzle: Puzzle) -> Solution {
+    let solution_2 = solve_puzzle_num_batteries(&puzzle, 2);
+    let solution_12 = solve_puzzle_num_batteries(&puzzle, 12);
+
+    Solution {
+        task_1: solution_2,
+        task_2: solution_12,
+    }
+}
+
 /// Solve puzzle (turns on `num_on_batteries` batteries)
-fn solve_puzzle(puzzle: &Puzzle, num_on_batteries: usize) -> usize {
+fn solve_puzzle_num_batteries(puzzle: &Puzzle, num_on_batteries: usize) -> usize {
     if num_on_batteries == 0 {
         panic!("Invalid argument: 0 batteries to turn on");
     }
@@ -117,57 +101,52 @@ mod tests {
     fn test_solve_puzzle() {
         let input = "987654321111111\n811111111111119\n234234234234278\n818181911112111";
         let puzzle = parse_puzzle(input).unwrap();
-        let solution_2 = solve_puzzle(&puzzle, 2);
-        assert_eq!(solution_2, 357);
-        let solution_12 = solve_puzzle(&puzzle, 12);
-        assert_eq!(solution_12, 3121910778619);
+        let solution = solve_puzzle(puzzle);
+        assert_eq!(solution.task_1, 357);
+        assert_eq!(solution.task_2, 3121910778619);
     }
 
     #[test]
     fn test_solve_puzzle_1() {
         let input = "987654321111111";
         let puzzle = parse_puzzle(input).unwrap();
-        let solution_2 = solve_puzzle(&puzzle, 2);
-        assert_eq!(solution_2, 98);
-        let solution_12 = solve_puzzle(&puzzle, 12);
-        assert_eq!(solution_12, 987654321111);
+        let solution = solve_puzzle(puzzle);
+        assert_eq!(solution.task_1, 98);
+        assert_eq!(solution.task_2, 987654321111);
     }
 
     #[test]
     fn test_solve_puzzle_2() {
         let input = "811111111111119";
         let puzzle = parse_puzzle(input).unwrap();
-        let solution_2 = solve_puzzle(&puzzle, 2);
-        assert_eq!(solution_2, 89);
-        let solution_12 = solve_puzzle(&puzzle, 12);
-        assert_eq!(solution_12, 811111111119);
+        let solution = solve_puzzle(puzzle);
+        assert_eq!(solution.task_1, 89);
+        assert_eq!(solution.task_2, 811111111119);
     }
 
     #[test]
     fn test_solve_puzzle_3() {
         let input = "234234234234278";
         let puzzle = parse_puzzle(input).unwrap();
-        let solution_2 = solve_puzzle(&puzzle, 2);
-        assert_eq!(solution_2, 78);
-        let solution_12 = solve_puzzle(&puzzle, 12);
-        assert_eq!(solution_12, 434234234278);
+        let solution = solve_puzzle(puzzle);
+        assert_eq!(solution.task_1, 78);
+        assert_eq!(solution.task_2, 434234234278);
     }
 
     #[test]
     fn test_solve_puzzle_4() {
         let input = "818181911112111";
         let puzzle = parse_puzzle(input).unwrap();
-        let solution_2 = solve_puzzle(&puzzle, 2);
-        assert_eq!(solution_2, 92);
-        let solution_12 = solve_puzzle(&puzzle, 12);
-        assert_eq!(solution_12, 888911112111);
+        let solution = solve_puzzle(puzzle);
+        assert_eq!(solution.task_1, 92);
+        assert_eq!(solution.task_2, 888911112111);
     }
 
     #[test]
     fn test_solve_puzzle_5() {
         let input = "24352342";
         let puzzle = parse_puzzle(input).unwrap();
-        let solution_4 = solve_puzzle(&puzzle, 4);
+        let solution_4 = solve_puzzle_num_batteries(&puzzle, 4);
         assert_eq!(solution_4, 5342);
     }
 
@@ -175,7 +154,7 @@ mod tests {
     fn test_solve_puzzle_6() {
         let input = "987654321";
         let puzzle = parse_puzzle(input).unwrap();
-        let solution_4 = solve_puzzle(&puzzle, 4);
+        let solution_4 = solve_puzzle_num_batteries(&puzzle, 4);
         assert_eq!(solution_4, 9876);
     }
 
@@ -188,11 +167,10 @@ mod tests {
 
     #[test]
     fn test_real_input() {
-        let input = include_str!("../../inputs/day-3");
+        let input = include_str!("../inputs/day_3");
         let puzzle = parse_puzzle(input).unwrap();
-        let solution_2 = solve_puzzle(&puzzle, 2);
-        assert_eq!(solution_2, 17109);
-        let solution_12 = solve_puzzle(&puzzle, 12);
-        assert_eq!(solution_12, 169347417057382);
+        let solution = solve_puzzle(puzzle);
+        assert_eq!(solution.task_1, 17109);
+        assert_eq!(solution.task_2, 169347417057382);
     }
 }

@@ -1,31 +1,7 @@
+use crate::common::Solution;
 use anyhow::{Result, anyhow};
-use std::io::{self, Read};
 
-fn main() {
-    let mut input_buffer = String::new();
-
-    println!("Reading input from stdin...");
-    if let Err(e) = io::stdin().read_to_string(&mut input_buffer) {
-        eprintln!("Error reading input: {}", e);
-        return;
-    }
-
-    let puzzle = match parse_puzzle(&input_buffer) {
-        Ok(puzzle) => puzzle,
-        Err(e) => {
-            eprintln!("Error parsing puzzle: {}", e);
-            return;
-        }
-    };
-
-    let (removed_first_pass, removed_total) = solve_puzzle(puzzle);
-    println!(
-        "Solution: removed_first_pass = {}, removed_total = {}",
-        removed_first_pass, removed_total
-    );
-}
-
-struct Puzzle {
+pub struct Puzzle {
     diagram: Vec<Vec<Position>>,
 }
 
@@ -46,7 +22,7 @@ fn parse_position(c: char) -> Result<Position> {
     }
 }
 
-fn parse_puzzle(input: &str) -> Result<Puzzle> {
+pub fn parse_puzzle(input: &str) -> Result<Puzzle> {
     let diagram = input
         .lines()
         .map(|line| {
@@ -61,7 +37,7 @@ fn parse_puzzle(input: &str) -> Result<Puzzle> {
 
 /// Pass `puzzle` as value and not reference to consume it (to avoid the caller reusing a modified puzzle afterwards).
 /// Returns (number of papers removed in first pass, number of papers removed in total)
-fn solve_puzzle(mut puzzle: Puzzle) -> (usize, usize) {
+pub fn solve_puzzle(mut puzzle: Puzzle) -> Solution {
     let mut removed_rounds: Vec<usize> = Vec::new();
 
     let mut done = false;
@@ -75,7 +51,10 @@ fn solve_puzzle(mut puzzle: Puzzle) -> (usize, usize) {
     let total_removed = removed_rounds.iter().sum();
     let first_pass = removed_rounds.first().unwrap_or(&0);
 
-    (*first_pass, total_removed)
+    Solution {
+        task_1: *first_pass,
+        task_2: total_removed,
+    }
 }
 
 /// Returns the number of papers removed
@@ -153,9 +132,9 @@ mod tests {
         .trim();
 
         let puzzle = parse_puzzle(input).unwrap();
-        let (solution_1, solution_2) = solve_puzzle(puzzle);
-        assert_eq!(solution_1, 13);
-        assert_eq!(solution_2, 43);
+        let solution = solve_puzzle(puzzle);
+        assert_eq!(solution.task_1, 13);
+        assert_eq!(solution.task_2, 43);
     }
 
     #[test]
@@ -167,17 +146,17 @@ mod tests {
         .trim();
 
         let puzzle = parse_puzzle(input).unwrap();
-        let (solution_1, solution_2) = solve_puzzle(puzzle);
-        assert_eq!(solution_1, 4);
-        assert_eq!(solution_2, 4);
+        let solution = solve_puzzle(puzzle);
+        assert_eq!(solution.task_1, 4);
+        assert_eq!(solution.task_2, 4);
     }
 
     #[test]
     fn test_real_input() {
-        let input = include_str!("../../inputs/day-4");
+        let input = include_str!("../inputs/day_4");
         let puzzle = parse_puzzle(input).unwrap();
-        let (solution_1, solution_2) = solve_puzzle(puzzle);
-        assert_eq!(solution_1, 1349);
-        assert_eq!(solution_2, 8277);
+        let solution = solve_puzzle(puzzle);
+        assert_eq!(solution.task_1, 1349);
+        assert_eq!(solution.task_2, 8277);
     }
 }
