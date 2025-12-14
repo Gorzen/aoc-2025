@@ -15,15 +15,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - uses: extractions/setup-just@v3
     - name: Format check
-      run: cargo fmt --all -- --check
+      run: just fmt-check
     - name: Lint check
-      run: |
-            cargo check
-            cargo clippy --all-features -- -D warnings
+      run: just lint
     - name: Build
-      run: cargo build --verbose
+      run: just build
     - name: Run tests
-      run: cargo test --verbose
+      run: just test
     - name: Run all binaries
-      run: for i in {1..5}; do echo "Running day_$i"; cargo run -- day_$i; done
+      run: just run-all

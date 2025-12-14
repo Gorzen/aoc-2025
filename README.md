@@ -14,11 +14,12 @@ There is also a `justfile` to run other useful commands
 ```
 $ just --list
 Available recipes:
-    all     # Format, lint, build and test
-    build   # Build
-    default # Runs 'all'
-    fmt     # Format code
-    lint    # Lint code (cargo check and clippy)
-    run-all # Run all days, one by one
-    test    # Run tests
+    all       # Format, lint, build and test
+    build     # Build
+    default   # Runs 'all'
+    fmt       # Format code
+    fmt-check # Check code format
+    lint      # Lint code (cargo check and clippy)
+    run-all   # Run all days, one by one
+    test      # Run tests
 ```

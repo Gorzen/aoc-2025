@@ -1,3 +1,5 @@
+set shell := ["bash", "-uc"]
+
 # Runs 'all'
 default:
     @just all
@@ -10,6 +12,10 @@ build:
 test:
     cargo test
 
+# Check code format
+fmt-check:
+    cargo fmt --all -- --check
+
 # Format code
 fmt:
     cargo fmt --all
@@ -21,7 +27,7 @@ lint:
 
 # Run all days, one by one
 run-all:
-    for i in {1..12}; do echo "Running day_$i"; cargo run -- day_$i; done
+    for i in {1..5}; do echo "Running day_$i"; cargo run -- day_$i; done
 
 # Format, lint, build and test
 all: fmt lint build test
