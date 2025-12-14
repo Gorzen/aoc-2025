@@ -6,7 +6,7 @@ fn main() {
 
     if args.len() != 2 {
         eprintln!(
-            "Expected two arguments - the program and the day to run (day_1, day_2, ...). Got {} arguments.",
+            "Expected two arguments - the program and the day to run (day_1, ..., day_12). Got {} arguments.",
             args.len()
         );
         return;
@@ -21,7 +21,7 @@ fn main() {
         "day_4" => run_day!(day_4),
         "day_5" => run_day!(day_5),
         other => {
-            eprintln!("Unexpected argument {}. Expected day_1, day_2, ...", other);
+            eprintln!("Unexpected argument {}. Expected day_1, ..., day_12", other);
         }
     }
 }
