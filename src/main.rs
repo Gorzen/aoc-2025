@@ -20,6 +20,7 @@ fn main() -> Result<()> {
         "day_3" => run_day!(day_3),
         "day_4" => run_day!(day_4),
         "day_5" => run_day!(day_5),
+        "day_6" => run_day!(day_6),
         other => Err(anyhow!(
             "Unexpected argument {}. Expected day_1, ..., day_12",
             other
