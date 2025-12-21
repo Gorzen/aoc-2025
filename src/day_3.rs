@@ -98,8 +98,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_solve_puzzle() {
-        let input = "987654321111111\n811111111111119\n234234234234278\n818181911112111";
+    fn test_example_puzzle() {
+        let input = include_str!("../inputs/examples/day_3");
         let puzzle = parse_puzzle(input).unwrap();
         let solution = solve_puzzle(puzzle);
         assert_eq!(solution.task_1, 357);
@@ -107,7 +107,7 @@ mod tests {
     }
 
     #[test]
-    fn test_solve_puzzle_1() {
+    fn test_example_puzzle_1() {
         let input = "987654321111111";
         let puzzle = parse_puzzle(input).unwrap();
         let solution = solve_puzzle(puzzle);
@@ -116,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    fn test_solve_puzzle_2() {
+    fn test_example_puzzle_2() {
         let input = "811111111111119";
         let puzzle = parse_puzzle(input).unwrap();
         let solution = solve_puzzle(puzzle);
@@ -125,7 +125,7 @@ mod tests {
     }
 
     #[test]
-    fn test_solve_puzzle_3() {
+    fn test_example_puzzle_3() {
         let input = "234234234234278";
         let puzzle = parse_puzzle(input).unwrap();
         let solution = solve_puzzle(puzzle);
@@ -134,7 +134,7 @@ mod tests {
     }
 
     #[test]
-    fn test_solve_puzzle_4() {
+    fn test_example_puzzle_4() {
         let input = "818181911112111";
         let puzzle = parse_puzzle(input).unwrap();
         let solution = solve_puzzle(puzzle);
@@ -143,7 +143,7 @@ mod tests {
     }
 
     #[test]
-    fn test_solve_puzzle_5() {
+    fn test_example_puzzle_5() {
         let input = "24352342";
         let puzzle = parse_puzzle(input).unwrap();
         let solution_4 = solve_puzzle_num_batteries(&puzzle, 4);
@@ -151,7 +151,7 @@ mod tests {
     }
 
     #[test]
-    fn test_solve_puzzle_6() {
+    fn test_example_puzzle_6() {
         let input = "987654321";
         let puzzle = parse_puzzle(input).unwrap();
         let solution_4 = solve_puzzle_num_batteries(&puzzle, 4);

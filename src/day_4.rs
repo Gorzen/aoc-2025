@@ -116,21 +116,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_solve_puzzle() {
-        let input = "
-..@@.@@@@.
-@@@.@.@.@@
-@@@@@.@.@@
-@.@@@@..@.
-@@.@@@@.@@
-.@@@@@@@.@
-.@.@.@.@@@
-@.@@@.@@@@
-.@@@@@@@@.
-@.@.@@@.@.
-        "
-        .trim();
-
+    fn test_example_puzzle() {
+        let input = include_str!("../inputs/examples/day_4");
         let puzzle = parse_puzzle(input).unwrap();
         let solution = solve_puzzle(puzzle);
         assert_eq!(solution.task_1, 13);

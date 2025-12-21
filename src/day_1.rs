@@ -115,8 +115,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_solve_puzzle() {
-        let input = "L68\nL30\nR48\nL5\nR60\nL55\nL1\nL99\nR14\nL82";
+    fn test_example_puzzle() {
+        let input = include_str!("../inputs/examples/day_1");
         let puzzle = parse_puzzle(input).unwrap();
         let solution = solve_puzzle(puzzle);
         assert_eq!(solution.task_1, 3);
