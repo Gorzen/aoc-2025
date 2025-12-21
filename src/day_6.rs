@@ -124,6 +124,8 @@ pub fn parse_puzzle(input: &str) -> Result<Puzzle> {
     let mut curr_operator: Option<Operator> = None;
     let mut curr_columns: Vec<Vec<Number>> = Vec::new();
 
+    // TODO: I think this code can be simplified. In particular, I could try using a closure to avoid code duplication for pushing a problem.
+    // Maybe the code can be smaller as well by doing checks differently and in particular less sequentially (do more things at a time).
     for column_index in 0..line_length {
         let column: Vec<char> = lines.iter().map(|line| line[column_index]).collect();
 
