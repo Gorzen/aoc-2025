@@ -27,7 +27,7 @@ lint:
 
 # Run all days, one by one
 run-all:
-    for i in {1..6}; do echo "Running day_$i"; cargo run -- day_$i; done
+    for i in {1..7}; do echo "Running day_$i"; cargo run -- day_$i; done
 
 # Format, lint, build and test
 all: fmt lint build test

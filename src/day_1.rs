@@ -41,7 +41,6 @@ impl Display for Instruction {
     }
 }
 
-/// Consumes the input string and produces a Puzzle representation.
 pub fn parse_puzzle(input: &str) -> Result<Puzzle> {
     let instructions: Vec<Instruction> = input
         .lines()
